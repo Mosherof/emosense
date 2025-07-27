@@ -1,7 +1,6 @@
 # Align Pulses
 
-This pipeline served as a data validation step. Each trial is comprised of multiple video clips. These transitions need to be carefully recorded, as patterns in the EEG are being used to analyze brain activity 
-in response to envoked emotions. Video clips and transitions between trials was indicated during the study using "pulses". In other words, the amount of pulses within a short amount of time of time
+This pipeline served as a data validation step. Each trial is comprised of multiple video clips. These transitions need to be carefully recorded, as patterns in the EEG are being used to analyze brain activity in response to envoked emotions. Video clips and transitions between trials was indicated during the study using "pulses". In other words, the amount of pulses within a short amount of time of time
 could be used as a code to translate into times within the EEG signals. The pulses followed the form:
 <pre>
 y |
@@ -30,7 +29,8 @@ I previously used code in MATLAB to align the expected number of video clips to 
 |   .   |                .                     |
 |   .   |                .                     |
 |   7   | [yyx.mp4, yxx.mp4, ..., xxy.mp4]     | 
- </pre>, where there was a unique set of videos in each of the 'clips' row. Following up the example above, the information from the clips were translated into [3, 1, 4, 4, 4, 2, 3, ..., 1, 4, 4, ..., 4]
+ </pre>
+, where there was a unique set of videos in each of the 'clips' row. Following up the example above, the information from the clips were translated into [3, 1, 4, 4, 4, 2, 3, ..., 1, 4, 4, ..., 4]
 where 2's and 3's represented events inbetween video stimulus (trials). 1's represented the first video of a trial and 4's represented the following videos within the trial. This can be seen in `parse_behavioral_outputs.m`
 The recorded values were of the following form:
 <pre>
