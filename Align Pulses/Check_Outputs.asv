@@ -1,0 +1,115 @@
+% Creates a csv where the expected and recorded codes are compared.
+function output=Check_Outputs()
+    blocks = [2 3 4];
+    session = 1;
+    for block = blocks
+        csv = dir(sprintf('~/Documents/emo003/S%d/B%d/event_coded_new.csv', session, block));
+        video_clips = readtable([csv.folder '/' csv.name], 'Delimiter', ',').code;
+    
+        csv2 = dir(sprintf('~/Documents/emo003/S%d/B%d/parse.csv', session, block));
+        clips = readtable([csv2.folder '/' csv2.name], 'Delimiter', ',').Var1;
+        
+        [alignA, alignB, s] = align_trials(clips, video_clips);
+        T = table(alignA.', alignB.');
+        T.Properties.VariableNames=["Expected", "EEG Code"];
+        writetable(T,sprintf("~/Documents/emo003/S%d/B%d/align_new.csv", session, block));
+    end
+end
+
+% Performs an alignment algorithm to determine how the expected and
+% recorded codes should be paired up when they are not perfectly matched.
+%
+% The alignment prioritizes matching 2's and 3's together 
+function [alignedA, alignedB, scoreMatrix] = align_trials(seqA, seqB)
+   
+    seqA = seqA(:)';
+    seqB = seqB(:)';
+    
+    lenA = length(seqA);
+    lenB = length(seqB);
+
+    % Scoring
+    MATCH_1 = 10;
+    MATCH_2_3 = 2;
+    MISMATCH_2_3 = -1;
+    MATCH_OTHER = 1;
+    MISMATCH_OTHER = -2;
+    GAP_PENALTY_4 = -0.5;
+    GAP_PENALTY = -2;
+
+
+    scoreMatrix = zeros(lenA+1, lenB+1);
+    traceback = zeros(lenA+1, lenB+1); 
+
+    % Initialize edges with gap penalties
+    for i = 2:lenA+1
+        scoreMatrix(i,1) = scoreMatrix(i-1,1) + gap_penalty(seqA(i-1), GAP_PENALTY_4, GAP_PENALTY);
+        traceback(i,1) = 2; 
+    end
+    for j = 2:lenB+1
+        scoreMatrix(1,j) = scoreMatrix(1,j-1) + gap_penalty(seqB(j-1), GAP_PENALTY_4, GAP_PENALTY);
+        traceback(1,j) = 3;
+    end
+
+    for i = 2:lenA+1
+        for j = 2:lenB+1
+            a = seqA(i-1);
+            b = seqB(j-1);
+
+            match = scoreMatrix(i-1,j-1) + match_score(a, b, MATCH_1, MATCH_2_3, MISMATCH_2_3, MATCH_OTHER, MISMATCH_OTHER);
+            delete = scoreMatrix(i-1,j) + gap_penalty(a, GAP_PENALTY_4, GAP_PENALTY);
+            insert = scoreMatrix(i,j-1) + gap_penalty(b, GAP_PENALTY_4, GAP_PENALTY);
+
+            [scoreMatrix(i,j), move] = max([match, delete, insert]);
+            traceback(i,j) = move;
+        end
+    end
+
+    % Traceback
+    i = lenA + 1;
+    j = lenB + 1;
+    alignedA = [];
+    alignedB = [];
+
+    while i > 1 || j > 1
+        move = traceback(i,j);
+        if move == 1
+            alignedA = [seqA(i-1), alignedA];
+            alignedB = [seqB(j-1), alignedB];
+            i = i - 1;
+            j = j - 1;
+        elseif move == 2
+            alignedA = [seqA(i-1), alignedA];
+            alignedB = [NaN, alignedB];
+            i = i - 1;
+        else
+            alignedA = [NaN, alignedA];
+            alignedB = [seqB(j-1), alignedB];
+            j = j - 1;
+        end
+    end
+end
+
+function score = match_score(a, b, MATCH_1, MATCH_2_3, MISMATCH_2_3, MATCH_OTHER, MISMATCH_OTHER)
+    if a == 1 && b == 1
+        score = MATCH_1;
+    elseif (a == 2 || a == 3) && (b == 2 || b == 3)
+        if a == b
+            score = MATCH_2_3;
+        else
+            score = MISMATCH_2_3;
+        end
+    elseif a == b
+        score = MATCH_OTHER;
+    else
+        score = MISMATCH_OTHER;
+    end
+end
+
+function penalty = gap_penalty(x, GAP_PENALTY_4, GAP_PENALTY)
+    if x == 4
+        penalty = GAP_PENALTY_4;
+    else
+        penalty = GAP_PENALTY;
+    end
+end

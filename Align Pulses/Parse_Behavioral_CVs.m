@@ -1,0 +1,48 @@
+% Converts the known videos within each trial and block into comparable
+% values to the events_coded.
+% 
+% creates a csv file with a column containing expected codes (values are 1's, 2's, 3's, or 4's)     
+function Parse_Behavioral_CVs()
+    blocks = [1 2 3 4 5 6 7];
+    session = 1;
+    
+    for block = blocks
+        csv = dir(sprintf('~/Documents/Data/emo003/Session %d/Raw/Behavioral/[emo003]-s0%d-b0%d.csv', session, session, block));
+        video_clips = readtable([csv.folder '/' csv.name], 'Delimiter', ',').Var5;
+        clips = zeros(1, 200);
+
+        if block == 7
+            video_clips = video_clips(length(video_clips) - 6: length(video_clips)-1);
+        else
+            video_clips = video_clips(length(video_clips) - 5: length(video_clips));
+        end
+
+        clip_i = 1;
+        for i = 1:length(video_clips)
+             new_clip = split(extractBetween(video_clips{i}, "[", "]"), "|");
+             clips(clip_i) = 1;
+             clip_i = clip_i + 1;
+
+             if length(new_clip) > 1
+
+                  for j = 2:length(new_clip) -1
+                      clips(clip_i) = 4;
+                      clip_i = clip_i + 1;
+                   end
+             end
+             
+             clips(clip_i) = 2;
+             clips(clip_i + 1) = 3;
+             clip_i = clip_i + 2;
+             
+        end
+
+        clips(clips == 0) = [];
+        
+        if block == 1
+            clips = cat(2, 3, clips);
+        end
+  
+        writetable(table(clips.'),sprintf("~/Documents/emo003/S%d/B%d/parse.csv", session, block));
+    end
+
