@@ -12,4 +12,6 @@ The study was comprised of 5 different participants, each having 4 sessions of r
 3. 3 pulses: the begginning of the crosshair.
 Pulses were automatically recorded when the video screen went dark, and therefore, prone to errors. This is problematic and directly causes unclean data. When I joined the team, my original task was to manually compare the number of pulses to the known amount of clips for the trial. If they did not match, the block excluded from further analysis.
 
-Counting and comparing thousands of values by hand appeared to be a tedious and unverifiable process; therefore I took the initiave to streamline the process in a series of smaller steps. Additionally, I developed a method to fix datasets where extra pulses were added by the machine. This resulted in an increase of usable data by 50%.
+Counting and comparing thousands of values by hand appeared to be a tedious and unverifiable process; therefore I took the initiave to streamline the process in a series of smaller steps. Additionally, I developed a method to fix datasets where extra pulses were added by the machine. Once the location of extra pulses could be determined, I was able to implement exception cases to the MATLAB preprocessing code. This resulted in an increase of usable data by 50%.
+
+
